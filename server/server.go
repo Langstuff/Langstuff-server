@@ -5,10 +5,15 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"raiden_fumo/lang_notebook_core/ai"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+type AiRequestHandler struct {
+	openaiApiKey string
+}
+
+func (handler AiRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Read the request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -19,7 +24,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	jsonBody := map[string]string{}
 	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
-		http.Error(w, "Couldn't parse JSON", http.StatusBadRequest)
+		http.Error(w, "Couldn't parse request data", http.StatusBadRequest)
+		return
 	}
 	systemMessageText, jsonContainsSystemMessage := jsonBody["systemMessage"]
 
@@ -27,7 +33,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if jsonContainsSystemMessage {
 		args = append(args, systemMessageText)
 	}
-	textOutput, err := ai.AiRequest(args...)
+	textOutput, err := ai.AiRequest(handler.openaiApiKey, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -36,6 +42,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/ai", handler)
+	aiHandler := AiRequestHandler{openaiApiKey: os.Getenv("OPENAI_API_KEY")}
+	http.Handle("/ai", aiHandler)
+	http.HandleFunc("/flashcards", flashcardsHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

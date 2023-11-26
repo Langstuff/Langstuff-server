@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 )
 
 const mainSystemMessage = `
@@ -18,25 +17,25 @@ A: card 1 back
 
 Q: card 2 front
 A: card 2 back
-`;
+`
 
-func AiRequest(params ...string) (string, error) {
-	if len(params) < 1 {
+func AiRequest(openaiApiKey string, messages ...string) (string, error) {
+	if len(messages) < 1 {
 		return "", errors.New("AiRequest requires 1+ string parameters")
 	}
 
-	messages := []map[string]string{
-		{ "role": "user", "content": params[0] },
+	messageEntries := []map[string]string{
+		{"role": "user", "content": messages[0]},
 	}
 
 	// Support only 2 messages
-	if len(params) > 1 {
+	if len(messages) > 1 {
 		systemMessage := map[string]string{
 			"role":    "system",
-			"content": params[1],
+			"content": messages[1],
 		}
-		messages = append([]map[string]string{systemMessage}, messages...)
-		messages = append(messages, systemMessage)
+		messageEntries = append([]map[string]string{systemMessage}, messageEntries...)
+		messageEntries = append(messageEntries, systemMessage)
 	}
 
 	// messages = append(messages, map[string]string{
@@ -44,12 +43,11 @@ func AiRequest(params ...string) (string, error) {
 	// 	"content": mainSystemMessage,
 	// })
 
-
 	// Prepare the request payload
 	payload := map[string]interface{}{
 		"model":       "gpt-4",
 		"temperature": 0.7,
-		"messages":    messages,
+		"messages":    messageEntries,
 	}
 
 	// Convert the payload to JSON
@@ -61,7 +59,7 @@ func AiRequest(params ...string) (string, error) {
 	// Make the OpenAI API request
 	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(payloadBytes))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer " + os.Getenv("OPENAI_API_KEY"))
+	req.Header.Set("Authorization", "Bearer "+openaiApiKey)
 
 	if err != nil {
 		return "", err
