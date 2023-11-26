@@ -41,6 +41,10 @@ func (handler AiRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	w.Write([]byte(textOutput))
 }
 
+func flashcardsHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+}
+
 func main() {
 	aiHandler := AiRequestHandler{openaiApiKey: os.Getenv("OPENAI_API_KEY")}
 	http.Handle("/ai", aiHandler)
