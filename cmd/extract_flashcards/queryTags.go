@@ -11,6 +11,6 @@ func QueryTags(db *gorm.DB) {
 	var tags []database.Tag
 	db.Find(&tags)
 	for _, tag := range(tags) {
-		fmt.Println(tag)
+		fmt.Println(tag.Name)
 	}
 }

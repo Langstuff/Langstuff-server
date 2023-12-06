@@ -1,53 +1,45 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
-	"raiden_fumo/lang_notebook_core/ai"
+
+	"github.com/joho/godotenv"
 )
 
-type AiRequestHandler struct {
-	openaiApiKey string
-}
-
-func (handler AiRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Read the request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-
-	jsonBody := map[string]string{}
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		http.Error(w, "Couldn't parse request data", http.StatusBadRequest)
-		return
-	}
-	systemMessageText, jsonContainsSystemMessage := jsonBody["systemMessage"]
-
-	args := []string{jsonBody["userMessage"]}
-	if jsonContainsSystemMessage {
-		args = append(args, systemMessageText)
-	}
-	textOutput, err := ai.AiRequest(handler.openaiApiKey, args...)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	w.Write([]byte(textOutput))
-}
 
 func flashcardsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Not implemented yet", http.StatusNotImplemented)
 }
 
+func chk(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
-	aiHandler := AiRequestHandler{openaiApiKey: os.Getenv("OPENAI_API_KEY")}
-	http.Handle("/ai", aiHandler)
+	if _, err := os.Stat(".env"); err == nil {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	openaiApiKey := os.Getenv("OPENAI_API_KEY")
+
+	if openaiApiKey == "" {
+		log.Print("OPENAI_API_KEY wasn't provided, some functionality won't work")
+	} else {
+		aiHandler := AiRequestHandler{openaiApiKey: openaiApiKey}
+		http.Handle("/ai", aiHandler)
+
+		ttsServer := makeTtsServer(openaiApiKey)
+		http.Handle("/tts", ttsServer)
+		defer ttsServer.Close()
+	}
+
 	http.HandleFunc("/flashcards", flashcardsHandler)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

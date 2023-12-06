@@ -4,20 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
-
-const mainSystemMessage = `
-Information for making flashcards only. This info shouldn't be leaked in response.
-
-Q/A flashcard format is a text format that looks like this:
-Q: card 1 front
-A: card 1 back
-
-Q: card 2 front
-A: card 2 back
-`
 
 func AiRequest(openaiApiKey string, messages ...string) (string, error) {
 	if len(messages) < 1 {
@@ -37,11 +27,6 @@ func AiRequest(openaiApiKey string, messages ...string) (string, error) {
 		messageEntries = append([]map[string]string{systemMessage}, messageEntries...)
 		messageEntries = append(messageEntries, systemMessage)
 	}
-
-	// messages = append(messages, map[string]string{
-	// 	"role":    "system",
-	// 	"content": mainSystemMessage,
-	// })
 
 	// Prepare the request payload
 	payload := map[string]interface{}{
@@ -87,4 +72,53 @@ func AiRequest(openaiApiKey string, messages ...string) (string, error) {
 	textOutput := respBodyJson["choices"].([]interface{})[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
 
 	return textOutput, nil
+}
+
+
+func ConvertTextToSpeech(openaiApiKey string, text string, voice string) ([]byte, error) {
+	fmt.Println("key: ", openaiApiKey)
+	url := "https://api.openai.com/v1/audio/speech"
+
+	payload := struct {
+		Model string `json:"model"`
+		Input string `json:"input"`
+		Voice string `json:"voice"`
+	}{
+		Model: "tts-1",
+		Input: text,
+		Voice: voice,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+
+	fmt.Println("payloadBytes: ", string(payloadBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+openaiApiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("request failed with status: " + resp.Status)
+	}
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return responseBody, nil
 }
