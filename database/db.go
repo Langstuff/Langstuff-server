@@ -34,8 +34,8 @@ type SM2Record struct {
 
 type Tag struct {
 	gorm.Model
-	ID                uint `gorm:"unique,primaryKey,autoIncrement:true"`
-	Name              string
+	ID   uint `gorm:"unique,primaryKey,autoIncrement:true"`
+	Name string
 }
 
 func (tag *Tag) GetFlashcards(db *gorm.DB) []Flashcard {
@@ -54,6 +54,17 @@ func (tag *Tag) GetFlashcards(db *gorm.DB) []Flashcard {
 	// Query the Flashcard table to retrieve the flashcards with the matching IDs
 	db.Where("id IN ?", flashcardIDs).Find(&flashcards)
 
+	return flashcards
+}
+
+func GetFlashcardsByTagList(db *gorm.DB, deck *string, tags *[]string) []Flashcard {
+	var flashcards []Flashcard
+	db.Preload("Tags").Joins(`JOIN flashcard_tag_pairs
+			ON flashcards.id = flashcard_tag_pairs.flashcard_id
+			AND flashcards.deck_id = ?`, deck).
+		Joins("JOIN tags ON flashcard_tag_pairs.tag_id = tags.id").
+		Where("tags.name IN ?", *tags).
+		Find(&flashcards)
 	return flashcards
 }
 

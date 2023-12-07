@@ -8,6 +8,7 @@ import (
 	"raiden_fumo/lang_notebook_core/database"
 	"strconv"
 
+	"github.com/akamensky/argparse"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -86,14 +87,22 @@ func smStep(grade uint, db *gorm.DB, flashcard *database.Flashcard) {
 }
 
 func main() {
+	parser := argparse.NewParser("play_flashcards", "Play flashcards")
+	deck := parser.String("d", "deck", &argparse.Options{Help: "deck"})
+	tags := parser.StringList("t", "tags", &argparse.Options{Help: "tags"})
+	err := parser.Parse(os.Args)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		fmt.Println(3)
-		panic("failed to connect database")
+		panic("failed to connect to database")
 	}
 
-	var flashcards []database.Flashcard
-	db.Find(&flashcards)
+	var flashcards = database.GetFlashcardsByTagList(db, deck, tags)
 	scanner := bufio.NewScanner(os.Stdin)
 	for _, flashcard := range flashcards {
 		fmt.Println("-------------------")
