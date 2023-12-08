@@ -1,4 +1,4 @@
-package main
+package list
 
 import (
 	"fmt"
@@ -7,10 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func QueryTags(db *gorm.DB) {
+func Run(db *gorm.DB) {
 	var tags []database.Tag
 	db.Find(&tags)
-	for _, tag := range(tags) {
+	for _, tag := range tags {
 		fmt.Println(tag.Name)
 	}
 }

@@ -1,4 +1,4 @@
-package main
+package extract
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func extractFlashcards(db *gorm.DB) {
+func extractFlashcards(db *gorm.DB, deckName *string) {
 	bytes, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		fmt.Println(err)
@@ -18,7 +18,8 @@ func extractFlashcards(db *gorm.DB) {
 	}
 
 	var deck database.Deck
-	db.Where(database.Deck{Name: "Hello"}).FirstOrCreate(&deck, database.Deck{Name: "Hello", Description: "Hello, world"})
+	db.Where(database.Deck{Name: "Hello"}).
+		FirstOrCreate(&deck, database.Deck{Name: "Hello", Description: "Hello, world"})
 
 	pairs := markdown_parsing.ExtractLearnPairs(bytes)
 	for _, pair := range pairs {
