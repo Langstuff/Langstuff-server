@@ -44,10 +44,10 @@ type Pair struct {
 }
 
 func parsePair(line string) (string, string, error) {
-	re := regexp.MustCompile(`^\s*(.+)\s*:\s*(.+)\s*$`)
+	re := regexp.MustCompile(`^(.+):(.+)$`)
 	matches := re.FindStringSubmatch(line)
 	if len(matches) == 3 {
-		return matches[1], matches[2], nil
+		return strings.Trim(matches[1], " \t"), strings.Trim(matches[2], " \t"), nil
 	}
 	return "", "", errors.New("Line doesn't contain a string pair")
 }
