@@ -85,8 +85,7 @@ func smStep(grade uint, db *gorm.DB, flashcard *database.Flashcard) {
 }
 
 func Run(db *gorm.DB, deck *string, tags *[]string) {
-	fmt.Println("deck: '", *deck, "'")
-	var flashcards = database.GetFlashcardsByTagList(db, deck, tags)
+	var flashcards = database.GetFlashcardsByTagList(db, *deck, *tags)
 	scanner := bufio.NewScanner(os.Stdin)
 	for _, flashcard := range flashcards {
 		fmt.Println("-------------------")

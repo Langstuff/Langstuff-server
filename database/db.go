@@ -57,13 +57,36 @@ func (tag *Tag) GetFlashcards(db *gorm.DB) []Flashcard {
 	return flashcards
 }
 
-func GetFlashcardsByTagList(db *gorm.DB, deck *string, tags *[]string) []Flashcard {
+func GetFlashcardsByTagList(db *gorm.DB, deckName string, tags []string) []Flashcard {
+	if deckName == "" {
+		return getFlashcardsByTags(db, tags)
+	} else {
+		return getFlashcardsByDeckAndTags(db, deckName, tags)
+	}
+}
+
+func getFlashcardsByTags(db *gorm.DB, tags []string) []Flashcard {
 	var flashcards []Flashcard
-	db.Preload("Tags").Joins(`JOIN flashcard_tag_pairs
-			ON flashcards.id = flashcard_tag_pairs.flashcard_id
-			AND flashcards.deck_id = ?`, deck).
+	db.Preload("Tags").
+		Joins(`JOIN flashcard_tag_pairs
+			ON flashcards.id = flashcard_tag_pairs.flashcard_id`).
 		Joins("JOIN tags ON flashcard_tag_pairs.tag_id = tags.id").
-		Where("tags.name IN ?", *tags).
+		Where("tags.name IN ?", tags).
+		Find(&flashcards)
+	return flashcards
+}
+
+func getFlashcardsByDeckAndTags(db *gorm.DB, deckName string, tags []string) []Flashcard {
+	var deck Deck
+	db.Where("name = ?", deckName).First(&deck)
+
+	var flashcards []Flashcard
+	db.Preload("Tags").
+		Joins(`JOIN flashcard_tag_pairs
+			ON flashcards.id = flashcard_tag_pairs.flashcard_id
+			AND flashcards.deck_id = ?`, deck.ID).
+		Joins("JOIN tags ON flashcard_tag_pairs.tag_id = tags.id").
+		Where("tags.name IN ?", tags).
 		Find(&flashcards)
 	return flashcards
 }
