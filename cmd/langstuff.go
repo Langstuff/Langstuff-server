@@ -9,25 +9,7 @@ import (
 	"raiden_fumo/lang_notebook_core/database"
 
 	"github.com/akamensky/argparse"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
-
-func initializeDatabase() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-	if err != nil {
-		fmt.Println(3)
-		panic("failed to connect database")
-	}
-	db.AutoMigrate(
-		&database.Deck{},
-		&database.Flashcard{},
-		&database.SM2Record{},
-		&database.Tag{},
-		&database.FlashcardTagPair{},
-	)
-	return db
-}
 
 func main() {
 	parser := argparse.NewParser("langstuff", "langstuff")
@@ -48,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	db := initializeDatabase()
+	db := database.InitializeDatabase()
 
 	if extractFlashcardsCmd.Happened() {
 		extract.Run(db, extractCmdDeck)

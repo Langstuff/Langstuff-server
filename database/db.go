@@ -3,6 +3,9 @@ package database
 // AI Note: Copilot was used for code generation here
 
 import (
+	"fmt"
+
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -89,6 +92,22 @@ func getFlashcardsByDeckAndTags(db *gorm.DB, deckName string, tags []string) []F
 		Where("tags.name IN ?", tags).
 		Find(&flashcards)
 	return flashcards
+}
+
+func InitializeDatabase() *gorm.DB {
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		fmt.Println(3)
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(
+		&Deck{},
+		&Flashcard{},
+		&SM2Record{},
+		&Tag{},
+		&FlashcardTagPair{},
+	)
+	return db
 }
 
 type FlashcardTagPair struct {

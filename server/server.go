@@ -4,14 +4,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"raiden_fumo/lang_notebook_core/database"
 
 	"github.com/joho/godotenv"
 )
-
-
-func flashcardsHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Not implemented yet", http.StatusNotImplemented)
-}
 
 func chk(err error) {
 	if err != nil {
@@ -39,7 +35,10 @@ func main() {
 		defer ttsServer.Close()
 	}
 
-	http.HandleFunc("/flashcards", flashcardsHandler)
+	flashcardHandler := NewFlashcardRequestHandler(database.InitializeDatabase())
+	http.HandleFunc("/flashcards/start_session", flashcardHandler.StartSession)
+	http.HandleFunc("/flashcards/get_next_card", flashcardHandler.GetNextCard)
+	// http.HandleFunc("/flashcards/send_card_answer", flashcardHandler.SendCardAnswer)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
