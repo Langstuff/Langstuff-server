@@ -17,6 +17,11 @@ func main() {
 
 	extractFlashcardsCmd := flashcardCmd.NewCommand("extract", "extract")
 	extractCmdDeck := extractFlashcardsCmd.String("d", "deck", &argparse.Options{Help: "deck"})
+	extractFlashcardsTarget := extractFlashcardsCmd.Selector("t", "target", []string{
+		"save",
+		"qa",
+		"csv",
+	}, &argparse.Options{})
 
 	listFlashcardsCmd := flashcardCmd.NewCommand("list", "list")
 
@@ -33,7 +38,18 @@ func main() {
 	db := database.InitializeDatabase()
 
 	if extractFlashcardsCmd.Happened() {
-		extract.Run(db, extractCmdDeck)
+		var exportTarget extract.ExportTargetType = 0
+		switch *extractFlashcardsTarget {
+		case "save":
+			exportTarget = extract.SAVE_IN_DATABASE
+		case "qa":
+			exportTarget = extract.EXPORT_QA
+		case "csv":
+			exportTarget = extract.EXPORT_CSV
+		default:
+			panic("unknown export target " + *extractFlashcardsTarget)
+		}
+		extract.Run(db, exportTarget, extractCmdDeck)
 	} else if playFlashcardsCmd.Happened() {
 		play.Run(db, flashcardCmdDeck, flashcardCmdTags)
 	} else if listFlashcardsCmd.Happened() {
