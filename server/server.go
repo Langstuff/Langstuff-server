@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"raiden_fumo/lang_notebook_core/database"
+	"raiden_fumo/lang_notebook_core/core/database"
 
 	"github.com/joho/godotenv"
 )
@@ -38,7 +38,7 @@ func main() {
 	flashcardHandler := NewFlashcardRequestHandler(database.InitializeDatabase())
 	http.HandleFunc("/flashcards/start_session", flashcardHandler.StartSession)
 	http.HandleFunc("/flashcards/get_next_card", flashcardHandler.GetNextCard)
-	// http.HandleFunc("/flashcards/send_card_answer", flashcardHandler.SendCardAnswer)
+	http.HandleFunc("/flashcards/send_card_answer", flashcardHandler.SendCardAnswer)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

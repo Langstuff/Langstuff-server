@@ -2,7 +2,7 @@ package list
 
 import (
 	"fmt"
-	"raiden_fumo/lang_notebook_core/database"
+	"raiden_fumo/lang_notebook_core/core/database"
 
 	"gorm.io/gorm"
 )

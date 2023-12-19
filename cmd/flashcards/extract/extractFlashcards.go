@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"raiden_fumo/lang_notebook_core/database"
+	"raiden_fumo/lang_notebook_core/core/database"
 	"raiden_fumo/lang_notebook_core/markdown_parsing"
 
 	"gorm.io/gorm"

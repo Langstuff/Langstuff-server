@@ -5,7 +5,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"raiden_fumo/lang_notebook_core/database"
+	"raiden_fumo/lang_notebook_core/core/database"
+	"raiden_fumo/lang_notebook_core/core/flashcards"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -13,13 +14,13 @@ import (
 
 type flashcardRequestHandler struct {
 	db       *gorm.DB
-	sessions map[string]*Session
+	sessions map[string]*flashcards.Session
 }
 
 func NewFlashcardRequestHandler(db *gorm.DB) *flashcardRequestHandler {
 	return &flashcardRequestHandler{
 		db:       database.InitializeDatabase(),
-		sessions: make(map[string]*Session, 0),
+		sessions: make(map[string]*flashcards.Session, 0),
 	}
 }
 
@@ -31,14 +32,9 @@ func getFlashcardIDs() []int {
 	return []int{}
 }
 
-type Session struct {
-	ID           string
-	CurrentCard  int
-	FlashcardIDs []int
-}
 
 func (handler flashcardRequestHandler) StartSession(w http.ResponseWriter, r *http.Request) {
-	session := &Session{
+	session := &flashcards.Session{
 		ID:           generateSessionID(),
 		CurrentCard:  0,
 		FlashcardIDs: getFlashcardIDs(),
@@ -81,4 +77,13 @@ func (handler flashcardRequestHandler) GetNextCard(w http.ResponseWriter, r *htt
 		return
 	}
 	w.Write(ret)
+}
+
+func (handler flashcardRequestHandler) SendCardAnswer(w http.ResponseWriter, r *http.Request) {
+	// sessionID := getSessionIDFromRequest(r)
+	// session, ok := handler.sessions[sessionID]
+	// if !ok {
+	// 	http.Error(w, "Session "+sessionID+" not found", http.StatusNotFound)
+	// 	return
+	// }
 }

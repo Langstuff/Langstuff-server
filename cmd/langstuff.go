@@ -6,7 +6,7 @@ import (
 	"raiden_fumo/lang_notebook_core/cmd/flashcards/extract"
 	"raiden_fumo/lang_notebook_core/cmd/flashcards/list"
 	"raiden_fumo/lang_notebook_core/cmd/flashcards/play"
-	"raiden_fumo/lang_notebook_core/database"
+	"raiden_fumo/lang_notebook_core/core/database"
 
 	"github.com/akamensky/argparse"
 )

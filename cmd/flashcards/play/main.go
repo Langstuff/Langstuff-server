@@ -3,42 +3,12 @@ package play
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
-	"raiden_fumo/lang_notebook_core/database"
+	"raiden_fumo/lang_notebook_core/core/database"
 	"strconv"
 
 	"gorm.io/gorm"
 )
-
-type Card struct {
-	interval       uint
-	easinessFactor float64
-	repetitions    uint
-}
-
-func sm2Calc(grade uint, card Card) Card {
-	outCard := Card{}
-	if grade >= 3 {
-		if card.repetitions == 0 {
-			outCard.interval = 1
-		} else if card.repetitions == 1 {
-			outCard.interval = 6
-		} else {
-			outCard.interval = uint(math.Floor(float64(card.interval) * card.easinessFactor))
-		}
-		outCard.repetitions = card.repetitions + 1
-	} else {
-		outCard.repetitions = 0
-		outCard.interval = 1
-	}
-	outCard.easinessFactor = card.easinessFactor +
-		(0.1 - float64(5-grade)*(0.08+float64(5-grade)*0.02))
-	if card.easinessFactor < 1.3 {
-		card.easinessFactor = 1.3
-	}
-	return outCard
-}
 
 func readNumber(scanner *bufio.Scanner) (uint, bool) {
 	for {
@@ -69,18 +39,11 @@ func getFlashcardLearningInfo(db *gorm.DB, flashcard *database.Flashcard) *datab
 func smStep(grade uint, db *gorm.DB, flashcard *database.Flashcard) {
 	flashcardSM2Info := getFlashcardLearningInfo(db, flashcard)
 
-	new_values := sm2Calc(
-		grade,
-		Card{
-			flashcardSM2Info.Repetition,
-			float64(flashcardSM2Info.EasinessFactor),
-			flashcardSM2Info.Interval,
-		},
-	)
+	new_values := flashcard.Calc(grade)
 
-	flashcardSM2Info.Repetition = new_values.repetitions
-	flashcardSM2Info.Interval = new_values.interval
-	flashcardSM2Info.EasinessFactor = new_values.easinessFactor
+	flashcardSM2Info.Repetition = new_values.Repetitions
+	flashcardSM2Info.Interval = new_values.Interval
+	flashcardSM2Info.EasinessFactor = new_values.EasinessFactor
 	db.Save(&flashcardSM2Info)
 }
 
