@@ -36,7 +36,12 @@ func (handler AiRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	w.Write([]byte(textOutput))
+	ret, err := json.Marshal(map[string]string{"response": textOutput})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Write(ret)
 }
 
 func makeAiRequestServer(openaiApiKey string) *AiRequestHandler {
